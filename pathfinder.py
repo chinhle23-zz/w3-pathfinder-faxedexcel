@@ -1,3 +1,4 @@
+import random
 from PIL import ImageColor, Image, ImageDraw
 
 class Map:
@@ -110,7 +111,12 @@ class PathFinder:
             middle_delta = abs(starting_point - middle_path)
             bottom_delta = abs(starting_point - bottom_path)
             min_delta = min([top_delta, middle_delta, bottom_delta])
-            if top_delta == min_delta and top_delta != middle_delta:
+            if top_delta == min_delta and top_delta == bottom_delta and top_delta != middle_delta:
+                if random.randint(0, 1) == 0:
+                    y -= 1
+                else:
+                    y += 1
+            elif top_delta == min_delta and top_delta != middle_delta:
                 y -= 1 
             elif bottom_delta == min_delta and bottom_delta != middle_delta:
                 y += 1
@@ -125,3 +131,11 @@ if __name__ == "__main__":
     optimal_path_image = optimal_path_map.optimal_path_image
 
     optimal_path_image.save('optimal_path_map_test.png')
+
+    # optimal path test
+    map_info2 = MapDrawer()
+    optimal_path_info2 = PathFinder()
+    optimal_path_map2 = Map("elevation_small.txt", map_info, optimal_path_info, 299)
+    optimal_path_image2 = optimal_path_map.optimal_path_image
+    print(optimal_path_map.optimal_path == optimal_path_map2.optimal_path)
+        # ran multiple times and returned both True and False

@@ -5,7 +5,7 @@ class Map:
     """
     Represents a map
     """
-    def __init__(self, file, map_drawer, path_finder, y_coord):
+    def __init__(self, file, map_drawer, path_finder, y_coord=0):
         """
         Parameters:
         - file -- elevation data file to be read in
@@ -23,7 +23,9 @@ class Map:
         self.height = len(self.intensities)
         self.map_image = self.map_drawer.draw_map(self.width, self.height, self.intensities)
         self.optimal_path = self.path_finder.find_path(self.y_coord, self.elevations)
+        self.optimal_path_multiple = self.path_finder.find_path_multiple(self.height, self.elevations)
         self.optimal_path_image = self.map_drawer.draw_optimal_path(self.map_image, self.optimal_path)
+        self.optimal_path_image_multiple = self.map_drawer.draw_optimal_path_multiple(self.map_image, self.optimal_path_multiple)
 
     def convert_to_list(self):
         """
@@ -74,9 +76,16 @@ class MapDrawer:
         """
         for coordinate in optimal_coordinates:
             map_image.putpixel(coordinate, ImageColor.getcolor('green', 'RGBA')) 
-
         return map_image
 
+    def draw_optimal_path_multiple(self, map_image, mulitple_optimal_coordinates):
+        """
+        Given a 2-D list of optimal coordinates, draw all optimal paths onto an elevation map image
+        """
+        for line in mulitple_optimal_coordinates:
+            for coordinate in line:
+                map_image.putpixel(coordinate, ImageColor.getcolor('cyan', 'RGBA')) 
+        return map_image
     
 class PathFinder:
     """
@@ -104,7 +113,7 @@ class PathFinder:
             top_path = elevations[y-1][x+1]
             middle_path = elevations[y][x+1]
             if y + 1 >= height:
-                y = height - 1 
+                y = height - 2 
             bottom_path = elevations[y+1][x+1]
             
             top_delta = abs(starting_point - top_path)
@@ -123,19 +132,39 @@ class PathFinder:
             x += 1    
             optimal_path.append((x, y))
         return optimal_path
+    
+    def find_path_multiple(self, height, elevations):
+        """
+        Given a map height and 2-D list of elevations,
+        return a list of all possible paths of least resistance from west to east
+        """
+        optimal_path_multiple = []
+        for i in range(height):
+            optimal_path_multiple.append(self.find_path(i, elevations))
+        return optimal_path_multiple
+
 
 if __name__ == "__main__":
     map_info = MapDrawer()
     optimal_path_info = PathFinder()
-    optimal_path_map = Map("elevation_small.txt", map_info, optimal_path_info, 299)
-    optimal_path_image = optimal_path_map.optimal_path_image
+    optimal_path_map_multiple = Map("elevation_small.txt", map_info, optimal_path_info)
+    optimal_path_image_multiple = optimal_path_map_multiple.optimal_path_image_multiple
+    optimal_path_image_multiple.save('multiple_paths_test.png')
+    
 
-    optimal_path_image.save('optimal_path_map_test.png')
 
-    # optimal path test
-    map_info2 = MapDrawer()
-    optimal_path_info2 = PathFinder()
-    optimal_path_map2 = Map("elevation_small.txt", map_info, optimal_path_info, 299)
-    optimal_path_image2 = optimal_path_map.optimal_path_image
-    print(optimal_path_map.optimal_path == optimal_path_map2.optimal_path)
-        # ran multiple times and returned both True and False
+
+
+
+    #### Normal Mode ####
+    # optimal_path_map = Map("elevation_small.txt", map_info, optimal_path_info, 0)
+    # optimal_path_image = optimal_path_map.optimal_path_image
+    # optimal_path_image.save('optimal_path_map_test.png')
+
+    ### optimal path test ####
+    # map_info2 = MapDrawer()
+    # optimal_path_info2 = PathFinder()
+    # optimal_path_map2 = Map("elevation_small.txt", map_info, optimal_path_info, 299)
+    # optimal_path_image2 = optimal_path_map.optimal_path_image
+    # print(optimal_path_map.optimal_path == optimal_path_map2.optimal_path)
+    #     # ran multiple times and returned both True and False
